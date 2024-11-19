@@ -59,10 +59,10 @@ resource "aws_security_group" "alb" {
 #Define compute resources
 #I am using a free tier EC2 instance within my region
 
-resource "aws_launch_configuration" "First_AWS_Trial" {
+resource "aws_launch_template" "First_AWS_Trial" {
+	name			= "First_AWS_Trial_Launch_Template"
 	image_id		= "ami-0be8b3ed4febc3ec0"
-	instance_type		= "t2.micro"
-	security_groups		= [aws_security_group.instance.id]	
+	instance_type		= "t2.micro"	
 
 	user_data = <<-EOF
 		#!/bin/bash
@@ -70,18 +70,27 @@ resource "aws_launch_configuration" "First_AWS_Trial" {
 		nohup busybox httpd -f -p ${var.server_port} &
 		EOF
 
-	#Below 2 lines are required when using a launch configuration with an autoscaling group
-	lifecycle {
-		create_before_destroy = true
+	network_interfaces {
+		security_groups = [aws_security_group.instance.id]
 	}
+	
+	tag_specifications {
+		resource_type	= "instance"
+		tags = {
+			Name = "terraform-instance"
+		}
+	}	
 }
 
 #Setting the scaling rules for the group
 
 resource "aws_autoscaling_group" "First_AWS_Trial" {
-	launch_configuration	= aws_launch_configuration.First_AWS_Trial.name
-	vpc_zone_identifier	= data.aws_subnets.default.ids
+	launch_template	{
+		id	= aws_launch_template.First_AWS_Trial.id
+		version	= "$Latest"
+	}
 
+	vpc_zone_identifier	= data.aws_subnets.default.ids
 	target_group_arns = [aws_lb_target_group.asg.arn]
 	health_check_type = "ELB"
 
@@ -93,6 +102,11 @@ resource "aws_autoscaling_group" "First_AWS_Trial" {
 		value			= "terraform-asg-example"
 		propagate_at_launch	= true
 	}
+
+        #Ensures that new resources are created before old ones are destroyed. This minimizes downtime during updates, particularly for critical resources
+        lifecycle {
+                create_before_destroy = true
+        }
 }
 
 #Define load balancer resources
