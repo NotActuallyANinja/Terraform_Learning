@@ -64,11 +64,12 @@ resource "aws_launch_template" "First_AWS_Trial" {
 	image_id		= "ami-0be8b3ed4febc3ec0"
 	instance_type		= "t2.micro"	
 
-	user_data = <<-EOF
+	user_data = base64encode(<<-EOF
 		#!/bin/bash
 		echo "Hello, World" > index.html
 		nohup busybox httpd -f -p ${var.server_port} &
-		EOF
+	EOF
+	)
 
 	network_interfaces {
 		security_groups = [aws_security_group.instance.id]
