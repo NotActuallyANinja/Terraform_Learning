@@ -1,3 +1,14 @@
+terraform {
+    backend "s3" {
+        bucket  = "aws-first-project-state"
+        key     = "stage/services/webserver-cluster/terraform.tfstate"
+        region  = "eu-west-1"
+
+        dynamodb_table  = "Terraform_Learning_Locks"
+        encrypt         = true
+    }
+}
+
 provider "aws" {
 	region = "eu-west-1"
 }
@@ -13,14 +24,6 @@ data "aws_subnets" "default" {
 
 data "aws_vpc" "default" {
 	default = true
-}
-
-#Defining the port as a variable means I am not repeating myself by having 8080 manually typed in when it needs to be r>#Also reduces effort typing in 8080 each time I deploy the EC2 instance
-
-variable "server_port" {
-        description     = "The port the server will use for http requests"
-        type            = number
-        default         = 8080
 }
 
 #Defining the security groups (networking resources)
@@ -176,9 +179,3 @@ resource "aws_lb_listener_rule" "asg" {
 	}
 }
 
-#Change the below to output the DNS name of the ALB instead of the public IP
-
-output "alb_dns_name" {
-        value           = aws_lb.First_AWS_Trial.dns_name
-        description     = "The domain name of the load balancer"
-}
