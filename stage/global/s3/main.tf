@@ -6,7 +6,7 @@ resource "aws_s3_bucket" "terraform_state" {
 	bucket = "aws-first-project-state"
 
 lifecycle {
-	prevent_destroy = false
+	prevent_destroy = true 
 	}
 }
 
