@@ -17,9 +17,9 @@ resource "aws_db_instance" "example" {
     identifier_prefix      = "mysql-example"
     engine                 = "mysql"
     allocated_storage      = 10
-    instance_class         = "db.t2.micro"
+    instance_class         = "db.t3.micro"
     skip_final_snapshot    = true
-    db_name                = "first-db"
+    db_name                = "firstdb"
 
     username               = var.db_username
     password               = var.db_password
